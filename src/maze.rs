@@ -2,16 +2,19 @@
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Ord, PartialOrd)]
 pub struct Point(pub usize, pub usize);
 
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub struct Maze {
-    grid: Vec<i32>,
+    grid: [i32; 285],
     pub rows: usize,
     pub cols: usize,
 }
 
 impl Maze {
-    pub fn new(rows: usize, cols: usize) -> Self {
+
+    pub fn new(rows: usize, cols: usize, default_value: i32) -> Self {
+        assert!(rows * cols == 285, "Maze must be exactly 15x19.");
         Self {
-            grid: vec![1; rows * cols], // All open paths (1s)
+            grid: [default_value; 285], // Fill with default value (e.g., 1 for open path)
             rows,
             cols,
         }
@@ -48,5 +51,13 @@ impl Maze {
             rows: self.rows,
             cols: self.cols,
         }
+    }
+
+    pub fn iter(&self) -> impl Iterator<Item = (usize, usize, i32)> + '_ {
+        self.grid.iter().enumerate().map(move |(i, &value)| {
+            let row = i / self.cols;
+            let col = i % self.cols;
+            (row, col, value)
+        })
     }
 }

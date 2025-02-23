@@ -8,7 +8,7 @@ fn heuristic(a: Point, b: Point) -> usize {
     ((a.0 as isize - b.0 as isize).abs() + (a.1 as isize - b.1 as isize).abs()) as usize
 }
 
-fn a_star(maze: &Maze, start: Point, goal: Point) -> Option<usize> {
+fn a_star(maze: Maze, start: Point, goal: Point) -> Option<usize> {
     let directions = [(0,1), (1,0), (0,-1), (-1,0)];
     let mut open_set = BinaryHeap::new();
     let mut g_score = HashMap::new();
@@ -48,7 +48,7 @@ fn a_star(maze: &Maze, start: Point, goal: Point) -> Option<usize> {
     None
 }
 
-fn find_shortest_path(maze: &Maze, entry: Point, exit: Point, touchpoints: (Point, Point)) -> Option<usize> {
+fn find_shortest_path(maze: Maze, entry: Point, exit: Point, touchpoints: (Point, Point)) -> Option<usize> {
     let (tp1, tp2) = touchpoints;
     let path_a = a_star(maze, entry, tp1)?;
     let path_b = a_star(maze, tp1, tp2)?;
@@ -58,7 +58,7 @@ fn find_shortest_path(maze: &Maze, entry: Point, exit: Point, touchpoints: (Poin
 }
 
 fn optimize_maze(
-    maze: &mut Maze,
+    maze: Maze,
     entry: Point,
     exit: Point,
     touchpoints: (Point, Point),
@@ -76,33 +76,31 @@ fn optimize_maze(
         }
         cache.insert(current_maze_hash);
 
-        let current_length = find_shortest_path(&current_maze, entry, exit, touchpoints)
+        let current_length = find_shortest_path(current_maze, entry, exit, touchpoints)
             .unwrap_or(usize::MIN);
 
-        for x in 0..current_maze.rows {
-            for y in 0..current_maze.cols {
-                let point = Point(x,y);
-                if current_maze.get(point) == Some(0) {
-                    continue;
-                }
-
-                current_maze.set(point, 0);
-                let new_length = find_shortest_path(&current_maze, entry, exit, touchpoints)
-                    .unwrap_or(usize::MIN);
-
-                if new_length < current_length {
-                    current_maze.set(point, 1);
-                    continue;
-                }
-
-                if new_length > *best_length {
-                    *best_length = new_length;
-                    *best_maze = current_maze.clone();
-                }
-
-                stack.push_back(current_maze.clone()); // Push the modified maze for further processing
-                current_maze.set(point, 1); // Restore state for next iteration
+        for (x, y, value) in maze.iter() {
+            let point = Point(x,y);
+            if value == 0 {
+                continue;
             }
+
+            current_maze.set(point, 0);
+            let new_length = find_shortest_path(current_maze, entry, exit, touchpoints)
+                .unwrap_or(usize::MIN);
+
+            if new_length < current_length {
+                current_maze.set(point, 1);
+                continue;
+            }
+
+            if new_length > *best_length {
+                *best_length = new_length;
+                *best_maze = current_maze.clone();
+            }
+
+            stack.push_back(current_maze.clone()); // Push the modified maze for further processing
+            current_maze.set(point, 1); // Restore state for next iteration
         }
     }
 }
@@ -127,11 +125,11 @@ fn print_maze(entry: Point, exit: Point, touchpoints: (Point, Point), best_maze:
 }
 
 fn main() {
-    // let rows = 15;
-    // let cols = 19;
-    // let entry = Point(0, 4);
-    // let exit = Point(0, 14);
-    // let touchpoints = (Point(10, 4), Point(10, 14));
+    let rows = 15;
+    let cols = 19;
+    let entry = Point(0, 4);
+    let exit = Point(0, 14);
+    let touchpoints = (Point(10, 4), Point(10, 14));
 
     // let rows = 3;
     // let cols = 3;
@@ -139,18 +137,18 @@ fn main() {
     // let exit = Point(0,2);
     // let touchpoints = (Point(2,1), Point(2,1));
 
-    let rows = 4;
-    let cols = 4;
-    let entry = Point(0,0);
-    let exit = Point(0,3);
-    let touchpoints = (Point(2,1), Point(2,3));
-    
-    let mut maze = Maze::new(rows, cols);
-    let mut best_maze = maze.clone();
-    let mut best_length = find_shortest_path(&maze, entry, exit, touchpoints).unwrap_or(0);
+    // let rows = 4;
+    // let cols = 4;
+    // let entry = Point(0,0);
+    // let exit = Point(0,3);
+    // let touchpoints = (Point(2,1), Point(2,3));
+
+    let maze = Maze::new(rows, cols, 1);
+    let mut best_maze = maze;
+    let mut best_length = find_shortest_path(maze, entry, exit, touchpoints).unwrap_or(0);
     let mut cache = HashSet::new();
     
-    optimize_maze(&mut maze, entry, exit, touchpoints, &mut best_length, &mut best_maze, &mut cache);
+    optimize_maze(maze, entry, exit, touchpoints, &mut best_length, &mut best_maze, &mut cache);
     print_maze(entry, exit, touchpoints, best_maze);
     println!("Best Path Length: {}", best_length);
 }
