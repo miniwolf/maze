@@ -98,6 +98,7 @@ fn optimize_maze(
             }
 
             if new_length > *best_length {
+                // TODO: print here when a better one comes up. Shows progress
                 *best_length = new_length;
                 *best_maze = current_maze.clone();
             }
