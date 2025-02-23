@@ -79,8 +79,8 @@ fn optimize_maze(
         let current_length = find_shortest_path(&current_maze, entry, exit, touchpoints)
             .unwrap_or(usize::MIN);
 
-        for x in 0..current_maze.grid.len() {
-            for y in 0..current_maze.grid[0].len() {
+        for x in 0..current_maze.rows {
+            for y in 0..current_maze.cols {
                 let point = Point(x,y);
                 if current_maze.get(point) == Some(0) {
                     continue;
@@ -108,9 +108,10 @@ fn optimize_maze(
 }
 
 fn print_maze(entry: Point, exit: Point, touchpoints: (Point, Point), best_maze: Maze) {
-    for (i, row) in best_maze.grid.iter().enumerate() {
-        for (j, &cell) in row.iter().enumerate() {
-            let cell_point = Point(i, j);
+    for x in 0..best_maze.rows {
+        for y in 0..best_maze.cols {
+            let cell_point = Point(x, y);
+            let cell = best_maze.get(cell_point);
             if cell_point == entry || cell_point == exit {
                 print!("o");
             } else if cell_point == touchpoints.0 {
@@ -118,7 +119,7 @@ fn print_maze(entry: Point, exit: Point, touchpoints: (Point, Point), best_maze:
             } else if cell_point == touchpoints.1 {
                 print!("2");
             } else {
-                print!("{}", if cell == 1 { '.' } else { '#' });
+                print!("{}", if cell == Some(1) { '.' } else { '#' });
             }
         }
         println!();
