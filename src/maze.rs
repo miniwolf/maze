@@ -1,10 +1,11 @@
+use std::ops::{Index, IndexMut};
 
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Ord, PartialOrd)]
 pub struct Point(pub usize, pub usize);
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub struct Maze {
-    grid: [i32; 285],
+    grid: [i32; 16],
     pub rows: usize,
     pub cols: usize,
 }
@@ -12,12 +13,17 @@ pub struct Maze {
 impl Maze {
 
     pub fn new(rows: usize, cols: usize, default_value: i32) -> Self {
-        assert!(rows * cols == 285, "Maze must be exactly 15x19.");
+        assert!(rows * cols == 16, "Maze must be exactly 15x19.");
         Self {
-            grid: [default_value; 285], // Fill with default value (e.g., 1 for open path)
+            grid: [default_value; 16], // Fill with default value (e.g., 1 for open path)
             rows,
             cols,
         }
+    }
+
+    pub fn in_bounds(&self, point: Point) -> bool
+    {
+        return point.0 < self.rows && point.1 < self.cols;
     }
 
     pub fn index(&self, point: Point) -> Option<usize> {
@@ -25,16 +31,6 @@ impl Maze {
             Some(point.0 * self.cols + point.1)
         } else {
             None
-        }
-    }
-
-    pub fn get(&self, point: Point) -> Option<i32> {
-        self.index(point).map(|idx| self.grid[idx])
-    }
-
-    pub fn set(&mut self, point: Point, value: i32) {
-        if let Some(idx) = self.index(point) {
-            self.grid[idx] = value;
         }
     }
 
@@ -59,5 +55,23 @@ impl Maze {
             let col = i % self.cols;
             (row, col, value)
         })
+    }
+}
+
+// Implement the indexing operator `maze[point]` for **reading**
+impl Index<Point> for Maze {
+    type Output = i32;
+
+    fn index(&self, point: Point) -> &Self::Output {
+        let idx = self.index(point).expect("Index out of bounds");
+        &self.grid[idx]
+    }
+}
+
+// Implement the indexing operator `maze[point] = value` for **modifying**
+impl IndexMut<Point> for Maze {
+    fn index_mut(&mut self, point: Point) -> &mut Self::Output {
+        let idx = self.index(point).expect("Index out of bounds");
+        &mut self.grid[idx]
     }
 }

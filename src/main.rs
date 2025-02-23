@@ -30,8 +30,11 @@ fn a_star(maze: Maze, start: Point, goal: Point) -> Option<usize> {
             
             if new_x >= 0 && new_y >= 0 {
                 let new_pos = Point(new_x as usize, new_y as usize);
+                if !maze.in_bounds(new_pos) {
+                    continue;
+                }
                 
-                if maze.get(new_pos) == Some(1) {
+                if maze[new_pos] == 1 {
                     let new_cost = g_score[&current] + 1;
                     
                     if !g_score.contains_key(&new_pos) || new_cost < g_score[&new_pos] {
@@ -64,9 +67,9 @@ fn optimize_maze(
     touchpoints: (Point, Point),
     best_length: &mut usize,
     best_maze: &mut Maze,
-    cache: &mut HashSet<String>,
 ) {
     let mut stack = VecDeque::new();
+    let mut cache = HashSet::new();
     stack.push_back(maze.clone()); // Start with the initial maze
 
     while let Some(mut current_maze) = stack.pop_back() {
@@ -85,12 +88,12 @@ fn optimize_maze(
                 continue;
             }
 
-            current_maze.set(point, 0);
+            current_maze[point] = 0;
             let new_length = find_shortest_path(current_maze, entry, exit, touchpoints)
                 .unwrap_or(usize::MIN);
 
             if new_length < current_length {
-                current_maze.set(point, 1);
+                current_maze[point] = 1; // Restore state for next iteration
                 continue;
             }
 
@@ -100,7 +103,7 @@ fn optimize_maze(
             }
 
             stack.push_back(current_maze.clone()); // Push the modified maze for further processing
-            current_maze.set(point, 1); // Restore state for next iteration
+            current_maze[point] = 1; // Restore state for next iteration
         }
     }
 }
@@ -109,7 +112,7 @@ fn print_maze(entry: Point, exit: Point, touchpoints: (Point, Point), best_maze:
     for x in 0..best_maze.rows {
         for y in 0..best_maze.cols {
             let cell_point = Point(x, y);
-            let cell = best_maze.get(cell_point);
+            let cell = best_maze[cell_point];
             if cell_point == entry || cell_point == exit {
                 print!("o");
             } else if cell_point == touchpoints.0 {
@@ -117,7 +120,7 @@ fn print_maze(entry: Point, exit: Point, touchpoints: (Point, Point), best_maze:
             } else if cell_point == touchpoints.1 {
                 print!("2");
             } else {
-                print!("{}", if cell == Some(1) { '.' } else { '#' });
+                print!("{}", if cell == 1 { '.' } else { '#' });
             }
         }
         println!();
@@ -125,11 +128,11 @@ fn print_maze(entry: Point, exit: Point, touchpoints: (Point, Point), best_maze:
 }
 
 fn main() {
-    let rows = 15;
-    let cols = 19;
-    let entry = Point(0, 4);
-    let exit = Point(0, 14);
-    let touchpoints = (Point(10, 4), Point(10, 14));
+    // let rows = 15;
+    // let cols = 19;
+    // let entry = Point(0, 4);
+    // let exit = Point(0, 14);
+    // let touchpoints = (Point(10, 4), Point(10, 14));
 
     // let rows = 3;
     // let cols = 3;
@@ -137,18 +140,17 @@ fn main() {
     // let exit = Point(0,2);
     // let touchpoints = (Point(2,1), Point(2,1));
 
-    // let rows = 4;
-    // let cols = 4;
-    // let entry = Point(0,0);
-    // let exit = Point(0,3);
-    // let touchpoints = (Point(2,1), Point(2,3));
+    let rows = 4;
+    let cols = 4;
+    let entry = Point(0,0);
+    let exit = Point(0,3);
+    let touchpoints = (Point(2,1), Point(2,3));
 
     let maze = Maze::new(rows, cols, 1);
     let mut best_maze = maze;
     let mut best_length = find_shortest_path(maze, entry, exit, touchpoints).unwrap_or(0);
-    let mut cache = HashSet::new();
     
-    optimize_maze(maze, entry, exit, touchpoints, &mut best_length, &mut best_maze, &mut cache);
+    optimize_maze(maze, entry, exit, touchpoints, &mut best_length, &mut best_maze);
     print_maze(entry, exit, touchpoints, best_maze);
     println!("Best Path Length: {}", best_length);
 }
