@@ -155,3 +155,27 @@ fn main() {
     print_maze(entry, exit, touchpoints, best_maze);
     println!("Best Path Length: {}", best_length);
 }
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn case1() {
+        let rows = 4;
+        let cols = 4;
+        let entry = Point(0, 0);
+        let exit = Point(0, 3);
+        let touchpoints = (Point(2, 1), Point(2, 3));
+
+        let maze = Maze::new(rows, cols, 1);
+        let mut best_maze = maze;
+        let mut best_length = find_shortest_path(maze, entry, exit, touchpoints).unwrap_or(0);
+        assert_eq!(best_length, 7);
+
+        optimize_maze(maze, entry, exit, touchpoints, &mut best_length, &mut best_maze);
+        assert_eq!(best_maze.to_string(), ".....#.#..#.#...");
+        assert_eq!(best_length, 17);
+    }
+}
