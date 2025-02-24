@@ -23,7 +23,7 @@ impl Maze {
 
     pub fn in_bounds(&self, point: Point) -> bool
     {
-        return point.0 < self.rows && point.1 < self.cols;
+        point.0 < self.rows && point.1 < self.cols
     }
 
     pub fn index(&self, point: Point) -> Option<usize> {
@@ -43,7 +43,7 @@ impl Maze {
 
     pub fn clone(&self) -> Self {
         Self {
-            grid: self.grid.clone(),
+            grid: self.grid,
             rows: self.rows,
             cols: self.cols,
         }

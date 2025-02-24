@@ -57,7 +57,7 @@ fn find_shortest_path(maze: Maze, entry: Point, exit: Point, touchpoints: (Point
     let path_b = a_star(maze, tp1, tp2)?;
     let path_c = a_star(maze, tp2, exit)?;
     //println!("{},{},{}", path_a, path_b, path_c);
-    return Some(path_a + path_b + path_c);
+    Some(path_a + path_b + path_c)
 }
 
 fn optimize_maze(
