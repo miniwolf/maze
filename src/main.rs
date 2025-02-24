@@ -5,7 +5,7 @@ mod maze;
 use maze::*;
 
 fn heuristic(a: Point, b: Point) -> usize {
-    ((a.0 as isize - b.0 as isize).abs() + (a.1 as isize - b.1 as isize).abs()) as usize
+    a.0.abs_diff(b.0) + a.1.abs_diff(b.1)
 }
 
 fn a_star(maze: Maze, start: Point, goal: Point) -> Option<usize> {
