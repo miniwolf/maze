@@ -1,5 +1,5 @@
 use std::cmp::Reverse;
-use std::collections::{BinaryHeap, HashMap, HashSet, VecDeque};
+use std::collections::{BinaryHeap, HashSet, VecDeque};
 mod maze;
 
 use maze::*;
@@ -11,17 +11,17 @@ fn heuristic(a: Point, b: Point) -> usize {
 fn a_star(maze: Maze, start: Point, goal: Point) -> Option<usize> {
     let directions = [(0, 1), (1, 0), (0, -1), (-1, 0)];
     let mut open_set = BinaryHeap::new();
-    let mut g_score = HashMap::new();
-    let mut parent = HashMap::new();
+    let mut g_score = Grid::new(maze.rows, maze.cols, usize::MAX);
+    let mut parent = Grid::new(maze.rows, maze.cols, Point(0, 0));
 
-    g_score.insert(start, 0);
+    g_score[start] = 0;
     open_set.push(Reverse((heuristic(start, goal), start)));
 
     while let Some(Reverse((_, current))) = open_set.pop() {
         //println!("Visiting: {:?} with priority {}", current, priority);
         if current == goal {
             //println!("Goal reached! Distance: {}", g_score[&goal]);
-            return Some(*g_score.get(&goal).unwrap());
+            return Some(g_score[goal]);
         }
 
         for &(dx, dy) in &directions {
@@ -35,14 +35,14 @@ fn a_star(maze: Maze, start: Point, goal: Point) -> Option<usize> {
                 }
 
                 if maze[new_pos] == Space {
-                    let new_cost = g_score[&current] + 1;
+                    let new_cost = g_score[current] + 1;
 
-                    if !g_score.contains_key(&new_pos) || new_cost < g_score[&new_pos] {
+                    if new_cost < g_score[new_pos] {
                         //println!("Updating {:?} with new cost {}", new_pos, new_cost);
-                        g_score.insert(new_pos, new_cost);
+                        g_score[new_pos] = new_cost;
                         let priority = new_cost + heuristic(new_pos, goal);
                         open_set.push(Reverse((priority, new_pos)));
-                        parent.insert(new_pos, current);
+                        parent[new_pos] = current;
                     }
                 }
             }
