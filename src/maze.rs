@@ -32,13 +32,6 @@ impl Maze {
         }
     }
 
-    pub fn to_string(&self) -> String {
-        self.grid
-            .iter()
-            .map(|&cell| if cell == 1 { '.' } else { '#' })
-            .collect()
-    }
-
     pub fn clone(&self) -> Self {
         Self {
             grid: self.grid,
@@ -71,5 +64,14 @@ impl IndexMut<Point> for Maze {
     fn index_mut(&mut self, point: Point) -> &mut Self::Output {
         let idx = self.index(point).expect("Index out of bounds");
         &mut self.grid[idx]
+    }
+}
+
+impl std::fmt::Display for Maze {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        for cell in self.grid {
+            f.write_str(match cell { 1 => ".", _ => "#" })?;
+        }
+        Ok(())
     }
 }
