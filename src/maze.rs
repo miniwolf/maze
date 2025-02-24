@@ -1,5 +1,19 @@
 use std::ops::{Index, IndexMut};
 
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
+pub enum Cell {
+    Space,
+    Wall,
+}
+pub use Cell::*;
+
+impl AsRef<str> for Cell {
+    fn as_ref(&self) -> &str {
+        match self { Space => ".", Wall => "#" }
+    }
+}
+
+
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Ord, PartialOrd)]
 pub struct Point(pub usize, pub usize);
 
@@ -10,7 +24,7 @@ pub struct Grid<T> {
     pub cols: usize,
 }
 
-pub type Maze = Grid<i32>;
+pub type Maze = Grid<Cell>;
 
 // methods that work for any T
 impl<T> Grid<T> {
@@ -68,7 +82,7 @@ impl<T> IndexMut<Point> for Grid<T> {
 impl std::fmt::Display for Maze {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         for cell in self.data {
-            f.write_str(match cell { 1 => ".", _ => "#" })?;
+            f.write_str(cell.as_ref())?;
         }
         Ok(())
     }

@@ -34,7 +34,7 @@ fn a_star(maze: Maze, start: Point, goal: Point) -> Option<usize> {
                     continue;
                 }
 
-                if maze[new_pos] == 1 {
+                if maze[new_pos] == Space {
                     let new_cost = g_score[&current] + 1;
 
                     if !g_score.contains_key(&new_pos) || new_cost < g_score[&new_pos] {
@@ -84,16 +84,16 @@ fn optimize_maze(
 
         for (x, y, value) in maze.iter() {
             let point = Point(x, y);
-            if value == 0 {
+            if value == Wall {
                 continue;
             }
 
-            current_maze[point] = 0;
+            current_maze[point] = Wall;
             let new_length = find_shortest_path(current_maze, entry, exit, touchpoints)
                 .unwrap_or(usize::MIN);
 
             if new_length < current_length {
-                current_maze[point] = 1; // Restore state for next iteration
+                current_maze[point] = Space; // Restore state for next iteration
                 continue;
             }
 
@@ -104,7 +104,7 @@ fn optimize_maze(
             }
 
             stack.push_back(current_maze.clone()); // Push the modified maze for further processing
-            current_maze[point] = 1; // Restore state for next iteration
+            current_maze[point] = Space; // Restore state for next iteration
         }
     }
 }
@@ -121,7 +121,7 @@ fn print_maze(entry: Point, exit: Point, touchpoints: (Point, Point), best_maze:
             } else if cell_point == touchpoints.1 {
                 print!("2");
             } else {
-                print!("{}", if cell == 1 { '.' } else { '#' });
+                print!("{}", cell.as_ref());
             }
         }
         println!();
@@ -147,7 +147,7 @@ fn main() {
     let exit = Point(0, 3);
     let touchpoints = (Point(2, 1), Point(2, 3));
 
-    let maze = Maze::new(rows, cols, 1);
+    let maze = Maze::new(rows, cols, Space);
     let mut best_maze = maze;
     let mut best_length = find_shortest_path(maze, entry, exit, touchpoints).unwrap_or(0);
 
@@ -169,7 +169,7 @@ mod tests {
         let exit = Point(0, 3);
         let touchpoints = (Point(2, 1), Point(2, 3));
 
-        let maze = Maze::new(rows, cols, 1);
+        let maze = Maze::new(rows, cols, Space);
         let mut best_maze = maze;
         let mut best_length = find_shortest_path(maze, entry, exit, touchpoints).unwrap_or(0);
         assert_eq!(best_length, 7);
