@@ -11,7 +11,6 @@ pub struct Maze {
 }
 
 impl Maze {
-
     pub fn new(rows: usize, cols: usize, default_value: i32) -> Self {
         assert!(rows * cols == 16, "Maze must be exactly 15x19.");
         Self {
@@ -21,8 +20,7 @@ impl Maze {
         }
     }
 
-    pub fn in_bounds(&self, point: Point) -> bool
-    {
+    pub fn in_bounds(&self, point: Point) -> bool {
         point.0 < self.rows && point.1 < self.cols
     }
 

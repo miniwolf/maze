@@ -1,5 +1,5 @@
-use std::collections::{BinaryHeap, HashMap, HashSet, VecDeque};
 use std::cmp::Reverse;
+use std::collections::{BinaryHeap, HashMap, HashSet, VecDeque};
 mod maze;
 
 use maze::*;
@@ -9,7 +9,7 @@ fn heuristic(a: Point, b: Point) -> usize {
 }
 
 fn a_star(maze: Maze, start: Point, goal: Point) -> Option<usize> {
-    let directions = [(0,1), (1,0), (0,-1), (-1,0)];
+    let directions = [(0, 1), (1, 0), (0, -1), (-1, 0)];
     let mut open_set = BinaryHeap::new();
     let mut g_score = HashMap::new();
     let mut parent = HashMap::new();
@@ -23,20 +23,20 @@ fn a_star(maze: Maze, start: Point, goal: Point) -> Option<usize> {
             //println!("Goal reached! Distance: {}", g_score[&goal]);
             return Some(*g_score.get(&goal).unwrap());
         }
-        
+
         for &(dx, dy) in &directions {
             let new_x = current.0 as isize + dx;
             let new_y = current.1 as isize + dy;
-            
+
             if new_x >= 0 && new_y >= 0 {
                 let new_pos = Point(new_x as usize, new_y as usize);
                 if !maze.in_bounds(new_pos) {
                     continue;
                 }
-                
+
                 if maze[new_pos] == 1 {
                     let new_cost = g_score[&current] + 1;
-                    
+
                     if !g_score.contains_key(&new_pos) || new_cost < g_score[&new_pos] {
                         //println!("Updating {:?} with new cost {}", new_pos, new_cost);
                         g_score.insert(new_pos, new_cost);
@@ -83,7 +83,7 @@ fn optimize_maze(
             .unwrap_or(usize::MIN);
 
         for (x, y, value) in maze.iter() {
-            let point = Point(x,y);
+            let point = Point(x, y);
             if value == 0 {
                 continue;
             }
@@ -143,14 +143,14 @@ fn main() {
 
     let rows = 4;
     let cols = 4;
-    let entry = Point(0,0);
-    let exit = Point(0,3);
-    let touchpoints = (Point(2,1), Point(2,3));
+    let entry = Point(0, 0);
+    let exit = Point(0, 3);
+    let touchpoints = (Point(2, 1), Point(2, 3));
 
     let maze = Maze::new(rows, cols, 1);
     let mut best_maze = maze;
     let mut best_length = find_shortest_path(maze, entry, exit, touchpoints).unwrap_or(0);
-    
+
     optimize_maze(maze, entry, exit, touchpoints, &mut best_length, &mut best_maze);
     print_maze(entry, exit, touchpoints, best_maze);
     println!("Best Path Length: {}", best_length);
