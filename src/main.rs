@@ -80,9 +80,9 @@ fn optimize_maze(
         cache.insert(current_maze_hash);
 
         let current_length = find_shortest_path(current_maze, entry, exit, touchpoints)
-            .unwrap_or(usize::MIN);
+            .unwrap_or(usize::MIN); // TODO: Surely, usize::MAX, as in "infinite"? (usize::MIN can also be written as '0'.)
 
-        for (x, y, value) in maze.iter() {
+        for (x, y, value) in maze.iter() { // TODO: Why does this iterate over the original maze? Why do we need to track the original maze?
             let point = Point(x, y);
             if value == Wall {
                 continue;
@@ -90,7 +90,7 @@ fn optimize_maze(
 
             current_maze[point] = Wall;
             let new_length = find_shortest_path(current_maze, entry, exit, touchpoints)
-                .unwrap_or(usize::MIN);
+                .unwrap_or(usize::MIN); // TODO: Surely, usize::MAX?
 
             if new_length < current_length {
                 current_maze[point] = Space; // Restore state for next iteration
