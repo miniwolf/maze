@@ -47,7 +47,7 @@ impl Maze {
         }
     }
 
-    pub fn iter(&self) -> impl Iterator<Item = (usize, usize, i32)> + '_ {
+    pub fn iter(&self) -> impl Iterator<Item = (usize, usize, i32)> {
         self.grid.iter().enumerate().map(move |(i, &value)| {
             let row = i / self.cols;
             let col = i % self.cols;
