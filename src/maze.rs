@@ -32,14 +32,6 @@ impl Maze {
         }
     }
 
-    pub fn clone(&self) -> Self {
-        Self {
-            grid: self.grid,
-            rows: self.rows,
-            cols: self.cols,
-        }
-    }
-
     pub fn iter(&self) -> impl Iterator<Item = (usize, usize, i32)> {
         self.grid.iter().enumerate().map(move |(i, &value)| {
             let row = i / self.cols;
