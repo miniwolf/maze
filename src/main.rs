@@ -1,48 +1,48 @@
-use std::collections::{BinaryHeap, HashMap, HashSet, VecDeque};
 use std::cmp::Reverse;
+use std::collections::{BinaryHeap, HashSet, VecDeque};
 mod maze;
 
 use maze::*;
 
 fn heuristic(a: Point, b: Point) -> usize {
-    ((a.0 as isize - b.0 as isize).abs() + (a.1 as isize - b.1 as isize).abs()) as usize
+    a.0.abs_diff(b.0) + a.1.abs_diff(b.1)
 }
 
 fn a_star(maze: Maze, start: Point, goal: Point) -> Option<usize> {
-    let directions = [(0,1), (1,0), (0,-1), (-1,0)];
+    let directions = [(0, 1), (1, 0), (0, -1), (-1, 0)];
     let mut open_set = BinaryHeap::new();
-    let mut g_score = HashMap::new();
-    let mut parent = HashMap::new();
+    let mut g_score = Grid::new(maze.rows, maze.cols, usize::MAX);
+    let mut parent = Grid::new(maze.rows, maze.cols, Point(0, 0));
 
-    g_score.insert(start, 0);
+    g_score[start] = 0;
     open_set.push(Reverse((heuristic(start, goal), start)));
 
     while let Some(Reverse((_, current))) = open_set.pop() {
         //println!("Visiting: {:?} with priority {}", current, priority);
         if current == goal {
             //println!("Goal reached! Distance: {}", g_score[&goal]);
-            return Some(*g_score.get(&goal).unwrap());
+            return Some(g_score[goal]);
         }
-        
+
         for &(dx, dy) in &directions {
             let new_x = current.0 as isize + dx;
             let new_y = current.1 as isize + dy;
-            
+
             if new_x >= 0 && new_y >= 0 {
                 let new_pos = Point(new_x as usize, new_y as usize);
                 if !maze.in_bounds(new_pos) {
                     continue;
                 }
-                
-                if maze[new_pos] == 1 {
-                    let new_cost = g_score[&current] + 1;
-                    
-                    if !g_score.contains_key(&new_pos) || new_cost < g_score[&new_pos] {
+
+                if maze[new_pos] == Space {
+                    let new_cost = g_score[current] + 1;
+
+                    if new_cost < g_score[new_pos] {
                         //println!("Updating {:?} with new cost {}", new_pos, new_cost);
-                        g_score.insert(new_pos, new_cost);
+                        g_score[new_pos] = new_cost;
                         let priority = new_cost + heuristic(new_pos, goal);
                         open_set.push(Reverse((priority, new_pos)));
-                        parent.insert(new_pos, current);
+                        parent[new_pos] = current;
                     }
                 }
             }
@@ -57,7 +57,7 @@ fn find_shortest_path(maze: Maze, entry: Point, exit: Point, touchpoints: (Point
     let path_b = a_star(maze, tp1, tp2)?;
     let path_c = a_star(maze, tp2, exit)?;
     //println!("{},{},{}", path_a, path_b, path_c);
-    return Some(path_a + path_b + path_c);
+    Some(path_a + path_b + path_c)
 }
 
 fn optimize_maze(
@@ -80,20 +80,20 @@ fn optimize_maze(
         cache.insert(current_maze_hash);
 
         let current_length = find_shortest_path(current_maze, entry, exit, touchpoints)
-            .unwrap_or(usize::MIN);
+            .unwrap_or(usize::MIN); // TODO: Surely, usize::MAX, as in "infinite"? (usize::MIN can also be written as '0'.)
 
-        for (x, y, value) in maze.iter() {
-            let point = Point(x,y);
-            if value == 0 {
+        for (x, y, value) in maze.iter() { // TODO: Why does this iterate over the original maze? Why do we need to track the original maze?
+            let point = Point(x, y);
+            if value == Wall {
                 continue;
             }
 
-            current_maze[point] = 0;
+            current_maze[point] = Wall;
             let new_length = find_shortest_path(current_maze, entry, exit, touchpoints)
-                .unwrap_or(usize::MIN);
+                .unwrap_or(usize::MIN); // TODO: Surely, usize::MAX?
 
             if new_length < current_length {
-                current_maze[point] = 1; // Restore state for next iteration
+                current_maze[point] = Space; // Restore state for next iteration
                 continue;
             }
 
@@ -104,7 +104,7 @@ fn optimize_maze(
             }
 
             stack.push_back(current_maze.clone()); // Push the modified maze for further processing
-            current_maze[point] = 1; // Restore state for next iteration
+            current_maze[point] = Space; // Restore state for next iteration
         }
     }
 }
@@ -121,7 +121,7 @@ fn print_maze(entry: Point, exit: Point, touchpoints: (Point, Point), best_maze:
             } else if cell_point == touchpoints.1 {
                 print!("2");
             } else {
-                print!("{}", if cell == 1 { '.' } else { '#' });
+                print!("{}", cell.as_ref());
             }
         }
         println!();
@@ -143,15 +143,39 @@ fn main() {
 
     let rows = 4;
     let cols = 4;
-    let entry = Point(0,0);
-    let exit = Point(0,3);
-    let touchpoints = (Point(2,1), Point(2,3));
+    let entry = Point(0, 0);
+    let exit = Point(0, 3);
+    let touchpoints = (Point(2, 1), Point(2, 3));
 
-    let maze = Maze::new(rows, cols, 1);
+    let maze = Maze::new(rows, cols, Space);
     let mut best_maze = maze;
     let mut best_length = find_shortest_path(maze, entry, exit, touchpoints).unwrap_or(0);
-    
+
     optimize_maze(maze, entry, exit, touchpoints, &mut best_length, &mut best_maze);
     print_maze(entry, exit, touchpoints, best_maze);
     println!("Best Path Length: {}", best_length);
+}
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn case1() {
+        let rows = 4;
+        let cols = 4;
+        let entry = Point(0, 0);
+        let exit = Point(0, 3);
+        let touchpoints = (Point(2, 1), Point(2, 3));
+
+        let maze = Maze::new(rows, cols, Space);
+        let mut best_maze = maze;
+        let mut best_length = find_shortest_path(maze, entry, exit, touchpoints).unwrap_or(0);
+        assert_eq!(best_length, 7);
+
+        optimize_maze(maze, entry, exit, touchpoints, &mut best_length, &mut best_maze);
+        assert_eq!(best_maze.to_string(), ".....#.#..#.#...");
+        assert_eq!(best_length, 17);
+    }
 }
